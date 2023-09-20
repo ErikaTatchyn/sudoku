@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Timer from "./components/Timer";
 import SudokuGrid from "./components/SudokuGrid";
 import axios from "axios";
+import { Box, Button, Typography } from "@mui/material";
 
 function App() {
   const initialGrid = [
@@ -16,76 +17,42 @@ function App() {
     [0, 3, 0, 0, 0, 0, 0, 9, 5],
   ];
 
+  const completeGrid = [
+    [2, 9, 4, 5, 6, 3, 8, 7, 1],
+    [3, 1, 6, 7, 2, 8, 4, 5, 9],
+    [8, 5, 7, 1, 4, 9, 6, 3, 2],
+    [5, 2, 8, 4, 3, 1, 9, 6, 7],
+    [4, 6, 3, 9, 8, 7, 5, 2, 1],
+    [1, 7, 9, 6, 5, 2, 3, 8, 4],
+    [7, 8, 5, 3, 9, 6, 4, 1, 2],
+    [9, 4, 1, 2, 7, 5, 3, 8, 6],
+    [6, 3, 2, 8, 1, 4, 7, 9, 5],
+  ];
+
   const [grid, setGrid] = useState(initialGrid);
+  const [showSolution, setShowSolution] = useState(false);
 
-  function isSudokuValid(board) {
-    // Check rows, columns, and 3x3 subgrids for duplicates
-    for (let i = 0; i < 9; i++) {
-      const rowValues = [];
-      const colValues = [];
-      const subgridValues = [];
+  const handleCheckSolution = () => {
+    setShowSolution(!showSolution);
+  };
 
-      for (let j = 0; j < 9; j++) {
-        // Check rows
-        const rowCellValue = board[i][j];
-        if (rowCellValue !== 0) {
-          if (rowValues.includes(rowCellValue)) return false;
-          rowValues.push(rowCellValue);
-        }
-
-        // Check columns
-        const colCellValue = board[j][i];
-        if (colCellValue !== 0) {
-          if (colValues.includes(colCellValue)) return false;
-          colValues.push(colCellValue);
-        }
-
-        // Check 3x3 subgrids
-        const subgridRow = 3 * Math.floor(i / 3) + Math.floor(j / 3);
-        const subgridCol = 3 * (i % 3) + (j % 3);
-        const subgridCellValue = board[subgridRow][subgridCol];
-        if (subgridCellValue !== 0) {
-          if (subgridValues.includes(subgridCellValue)) return false;
-          subgridValues.push(subgridCellValue);
-        }
-      }
-    }
-
-    return true; // No issues found, Sudoku is valid
-  }
-
-  function isSudokuComplete(board) {
-    // Check if there are any empty cells (cells with a value of 0)
-    for (let row = 0; row < 9; row++) {
-      for (let col = 0; col < 9; col++) {
-        if (board[row][col] === 0) {
-          return false; // There's at least one empty cell, Sudoku is not complete
-        }
-      }
-    }
-
-    // Check rows, columns, and 3x3 subgrids for duplicates
-    return isSudokuValid(board);
-  }
+  const handleEndGame = () => {
+    setShowSolution(false);
+    setGrid(initialGrid);
+  };
 
   const handleCellClick = (row, col, newValue) => {
-    // Handle user input and update the grid
     const updatedGrid = [...grid];
     updatedGrid[row][col] = newValue;
     setGrid(updatedGrid);
-    console.log("isSudokuValid(updatedGrid)", isSudokuValid(updatedGrid));
 
-    // Send the updated grid to the backend
     axios
-      .post("/api/update-grid", { grid: updatedGrid }) // Adjust the API endpoint
+      .post("http://localhost:3001/api/update-grid", { grid: updatedGrid })
       .then((response) => {
         if (response.data.success) {
-          // Check for game completion
           if (response.data.isComplete) {
-            // Game is complete, you can display a success message
             alert("Congratulations! You solved the Sudoku puzzle!");
           } else if (!response.data.isValid) {
-            // Invalid move, display an error message
             alert("Invalid move. Please check your input.");
           }
         } else {
@@ -99,12 +66,44 @@ function App() {
   };
 
   return (
-    <div>
-      <h1>Sudoku Game</h1>
-      <Timer />
-      <SudokuGrid grid={grid} handleCellClick={handleCellClick} />
-      {/* Add other game elements as needed */}
-    </div>
+    <>
+      <Typography variant="h3" sx={{ textAlign: "center", m: 5 }}>
+        Sudoku Game
+      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-around",
+          alignItems: "center",
+        }}
+      >
+        <SudokuGrid
+          grid={showSolution ? completeGrid : grid}
+          handleCellClick={handleCellClick}
+        />
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 3,
+            width: 300,
+            mr: 30,
+          }}
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCheckSolution}
+          >
+            {showSolution ? "Hide Solution" : "Check Solution"}
+          </Button>
+          <Button variant="contained" color="secondary" onClick={handleEndGame}>
+            End Game
+          </Button>{" "}
+          <Timer />
+        </Box>
+      </Box>
+    </>
   );
 }
 
