@@ -1,10 +1,27 @@
 import React from "react";
 
-function Cell({ value, onChange }) {
+function Cell({ value, onChange, col, row }) {
   const handleChange = (e) => {
     const newValue = parseInt(e.target.value, 10);
-    onChange(newValue);
+    if (!isNaN(newValue) && newValue >= 1 && newValue <= 9) {
+      onChange(newValue);
+    }
   };
+
+  const cellStyle = {
+    width: 40,
+    height: 40,
+    borderBottom: "1px solid black",
+    borderRight: "1px solid black",
+  };
+
+  if ((col + 1) % 3 === 0) {
+    cellStyle.borderRight = "3px solid black";
+  }
+
+  if ((row + 1) % 3 === 0) {
+    cellStyle.borderBottom = "3px solid black";
+  }
 
   return (
     <input
@@ -14,7 +31,7 @@ function Cell({ value, onChange }) {
       className="sudoku-cell"
       value={value === 0 ? "" : value}
       onChange={handleChange}
-      sx={{ width: 50, height: 50 }}
+      style={cellStyle}
     />
   );
 }

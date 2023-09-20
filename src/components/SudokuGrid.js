@@ -11,7 +11,11 @@ function SudokuGrid({ grid, handleCellClick }) {
             <Cell
               key={colIndex}
               value={value}
-              onChange={() => handleCellClick(rowIndex, colIndex)}
+              onChange={(newValue) =>
+                handleCellClick(rowIndex, colIndex, newValue)
+              }
+              row={rowIndex}
+              col={colIndex}
             />
           ))}
         </Grid>
